@@ -1,3 +1,15 @@
+# **************************************************************************** #
+#                                                                              #
+#                                                         :::      ::::::::    #
+#    spider.py                                          :+:      :+:    :+:    #
+#                                                     +:+ +:+         +:+      #
+#    By: yitani <yitani@student.42.fr>              +#+  +:+       +#+         #
+#                                                 +#+#+#+#+#+   +#+            #
+#    Created: 2025/11/03 23:11:05 by yitani            #+#    #+#              #
+#    Updated: 2025/11/03 23:29:24 by yitani           ###   ########.fr        #
+#                                                                              #
+# **************************************************************************** #
+
 import argparse
 from bs4 import BeautifulSoup
 from urllib.parse import urljoin, urlparse
@@ -17,10 +29,9 @@ def	imgDownload(url, images):
 
 		try:
 			image_response = requests.get(full_url)
+			image_data = image_response.content
 		except requests.exceptions.RequestException as e:
 			print("Error fetching the image URL:", e)
-
-		image_data = image_response.content
 		
 		fileName = os.path.basename(parsed_url.path)
 		if not fileName.endswith((".jpg","jpeg",".png",".gif",".bmp")):
@@ -45,7 +56,7 @@ def	extractLinks(url, refs, curr_depth):
 		full_link = urljoin(url, hrefs)
 		if full_link in visitedURL:
 			continue
-		if urlparse(hrefs).netloc == base_domain and urlparse(hrefs).scheme in ["https", "http"]:
+		if urlparse(full_link).netloc == base_domain and urlparse(full_link).scheme in ["https", "http"]:
 			spider(full_link, curr_depth + 1)
 
 def	spider(url, curr_depth=0):
@@ -69,11 +80,8 @@ def	spider(url, curr_depth=0):
 		extractLinks(url, refs, curr_depth)
 
 index = 0
-
 visitedURL = set()
-
 parser = argparse.ArgumentParser()
-
 parser.add_argument("url", help="URL to scrape")
 parser.add_argument("-r", "--recursive", action="store_true", help="Recursively download images")
 parser.add_argument("-p", "--path", type=str, default="./data/", help="Path to save files, default=./data/")
@@ -84,7 +92,6 @@ url = args.url
 path = args.path
 maxDepth = args.maxDepth
 recursive = args.recursive
-
 base_domain = urlparse(url).netloc
 
 if "-l" in argv and not recursive:
