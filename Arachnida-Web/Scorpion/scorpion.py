@@ -6,7 +6,34 @@
 #    By: yitani <yitani@student.42.fr>              +#+  +:+       +#+         #
 #                                                 +#+#+#+#+#+   +#+            #
 #    Created: 2025/11/03 23:11:14 by yitani            #+#    #+#              #
-#    Updated: 2025/11/03 23:11:15 by yitani           ###   ########.fr        #
+#    Updated: 2025/11/04 12:10:34 by yitani           ###   ########.fr        #
 #                                                                              #
 # **************************************************************************** #
 
+from datetime import datetime
+from PIL import Image, ExifTags
+from sys import argv
+import os
+
+for args in argv[1:]:
+	if not args.lower().endswith((".jpg","jpeg",".png",".gif",".bmp")):
+		print("Error file ends with", args.split(".")[-1])
+		continue
+	try:
+		image = Image.open(args)
+	except Exception as e:
+		print("Errror opening", args, ":", e)
+		continue
+	print("\nBASIC INFORMATION:")
+	print("File name:", args)
+	print("File size: %.3f" %(os.path.getsize(args)/1024), "Bytes")
+	print("Format:", image.format)
+	print("Dimensions:", image.size, "pixels")
+	print("Creation date", datetime.fromtimestamp(int(os.path.getctime(args))))
+	print("Modification date", datetime.fromtimestamp(int(os.path.getmtime(args))))
+	if image.format == "JPEG" or image.format == "JPG":
+		print("\nEXIF metaData:")
+		exif_dict = image.getexif()
+		for tags, values in exif_dict.items():
+			tag_value = ExifTags.TAGS.get(tags)
+			print(tag_value, ": ", values, sep='')

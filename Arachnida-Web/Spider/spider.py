@@ -6,7 +6,7 @@
 #    By: yitani <yitani@student.42.fr>              +#+  +:+       +#+         #
 #                                                 +#+#+#+#+#+   +#+            #
 #    Created: 2025/11/03 23:11:05 by yitani            #+#    #+#              #
-#    Updated: 2025/11/03 23:29:24 by yitani           ###   ########.fr        #
+#    Updated: 2025/11/04 09:28:20 by yitani           ###   ########.fr        #
 #                                                                              #
 # **************************************************************************** #
 
@@ -60,7 +60,6 @@ def	extractLinks(url, refs, curr_depth):
 			spider(full_link, curr_depth + 1)
 
 def	spider(url, curr_depth=0):
-	print(curr_depth)
 	if url in visitedURL or (curr_depth > maxDepth and recursive):
 		return
 	visitedURL.add(url)
