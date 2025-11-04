@@ -6,7 +6,7 @@
 #    By: yitani <yitani@student.42.fr>              +#+  +:+       +#+         #
 #                                                 +#+#+#+#+#+   +#+            #
 #    Created: 2025/11/03 23:11:05 by yitani            #+#    #+#              #
-#    Updated: 2025/11/04 09:28:20 by yitani           ###   ########.fr        #
+#    Updated: 2025/11/04 14:09:45 by yitani           ###   ########.fr        #
 #                                                                              #
 # **************************************************************************** #
 
@@ -71,12 +71,15 @@ def	spider(url, curr_depth=0):
 		print("Error fetching the page:", e)
 
 	print("currently scrapping", url)
-	soup = BeautifulSoup(response.text, "html.parser")
-	images = soup.find_all("img")
-	refs = soup.find_all("a")
-	imgDownload(url, images)
-	if recursive:
-		extractLinks(url, refs, curr_depth)
+	try:
+		soup = BeautifulSoup(response.text, "html.parser")
+		images = soup.find_all("img")
+		refs = soup.find_all("a")
+		imgDownload(url, images)
+		if recursive:
+			extractLinks(url, refs, curr_depth)
+	except Exception:
+		print("Error in URL", url)
 
 index = 0
 visitedURL = set()
