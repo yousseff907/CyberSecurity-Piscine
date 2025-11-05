@@ -6,9 +6,11 @@
 #    By: yitani <yitani@student.42.fr>              +#+  +:+       +#+         #
 #                                                 +#+#+#+#+#+   +#+            #
 #    Created: 2025/11/03 23:11:14 by yitani            #+#    #+#              #
-#    Updated: 2025/11/04 12:10:34 by yitani           ###   ########.fr        #
+#    Updated: 2025/11/05 23:30:32 by yitani           ###   ########.fr        #
 #                                                                              #
 # **************************************************************************** #
+
+#!/usr/bin/env python3
 
 from datetime import datetime
 from PIL import Image, ExifTags
