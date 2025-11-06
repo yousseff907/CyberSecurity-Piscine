@@ -49,8 +49,14 @@ def	deriveKey(password, salt):
 def	generateOtp(decryptedData):
 	timeCounter = time.time() // 30
 	newKey = bytes.fromhex(decryptedData)
-	counterBytes = timeCounter.to_bytes(8, byteorder="big")
+	counterBytes = int(timeCounter).to_bytes(8, byteorder="big")
 	hmacResult = hmac.new(newKey, counterBytes, hashlib.sha1).digest()
+	offSet = hmacResult[-1] & 0x0f
+	truncated = hmacResult[offSet:offSet+4]
+	code = int.from_bytes(truncated, byteorder='big')
+	code = code & 0x7fffffff
+	otp = code % 1000000
+	return str(otp).zfill(6)
 
 parser = argparse.ArgumentParser()
 parser.add_argument('-k', '--key', type=str)
@@ -79,7 +85,7 @@ if '-g' in argv:
 	exit(0)
 else:
 	try:
-		file = open("ft_otp.key", "rb")
+		file = open(args.key, "rb")
 		salt = file.read(16)
 		encryptedData = file.read()
 		file.close()
@@ -89,4 +95,10 @@ else:
 	password = getpass.getpass("Password: ")
 	key = deriveKey(password, salt)
 	fernetObj = Fernet(key)
-	decryptedData = fernetObj.decrypt(encryptedData).decode()
+	try:
+		decryptedData = fernetObj.decrypt(encryptedData).decode()
+	except Exception:
+		print("Error wrong password")
+		exit(1)
+	otp = generateOtp(decryptedData)
+	print(otp)
