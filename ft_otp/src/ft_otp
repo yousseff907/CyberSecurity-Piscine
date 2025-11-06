@@ -43,7 +43,7 @@ def	validateFile(pathToFile):
 	return content
 
 def	deriveKey(password, salt):
-	pbkd = PBKDF2HMAC(algorithm=hashes.SHA256(), salt=salt, backend=default_backend, iterations=10000, length=32)
+	pbkd = PBKDF2HMAC(algorithm=hashes.SHA256(), salt=salt, backend=default_backend(), iterations=10000, length=32)
 	return base64.urlsafe_b64encode(pbkd.derive(password.encode()))
 
 def	generateOtp(decryptedData):
