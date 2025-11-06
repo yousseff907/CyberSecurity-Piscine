@@ -1,3 +1,4 @@
+#!/usr/bin/env python3
 # **************************************************************************** #
 #                                                                              #
 #                                                         :::      ::::::::    #
@@ -6,12 +7,13 @@
 #    By: yitani <yitani@student.42.fr>              +#+  +:+       +#+         #
 #                                                 +#+#+#+#+#+   +#+            #
 #    Created: 2025/11/05 09:41:01 by yitani            #+#    #+#              #
-#    Updated: 2025/11/05 23:29:38 by yitani           ###   ########.fr        #
+#    Updated: 2025/11/06 09:20:37 by yitani           ###   ########.fr        #
 #                                                                              #
 # **************************************************************************** #
 
-#!/usr/bin/env python3
-
+import time
+import hmac
+import hashlib
 import getpass
 import argparse
 from cryptography.fernet import Fernet
@@ -32,7 +34,7 @@ def	validateFile(pathToFile):
 		print("Error was encountered opening file")
 		exit(1)
 	if len(content) < 64:
-		print("More than 64 values found")
+		print("Less than 64 values found")
 		exit(1)
 	for c in content:
 		if not c in ("0123456789aAbBcCdDeEfF"):
@@ -40,9 +42,15 @@ def	validateFile(pathToFile):
 			exit(1)
 	return content
 
-def	deriveKey():
+def	deriveKey(password, salt):
 	pbkd = PBKDF2HMAC(algorithm=hashes.SHA256(), salt=salt, backend=default_backend, iterations=10000, length=32)
 	return base64.urlsafe_b64encode(pbkd.derive(password.encode()))
+
+def	generateOtp(decryptedData):
+	timeCounter = time.time() // 30
+	newKey = bytes.fromhex(decryptedData)
+	counterBytes = timeCounter.to_bytes(8, byteorder="big")
+	hmacResult = hmac.new(newKey, counterBytes, hashlib.sha1).digest()
 
 parser = argparse.ArgumentParser()
 parser.add_argument('-k', '--key', type=str)
@@ -52,12 +60,11 @@ args = parser.parse_args()
 if '-g' in argv and '-k' in argv:
 	exit(1)
 
-password = getpass.getpass("Password: ")
 if '-g' in argv:
 	content = validateFile(args.file)
+	password = getpass.getpass("Password: ")
 	salt = urandom(16)
-	iv = urandom(16)
-	keyGen = deriveKey()
+	keyGen = deriveKey(password, salt)
 	fernetObj = Fernet(keyGen)
 	encryptedData = fernetObj.encrypt(content.encode())
 	try:
@@ -69,3 +76,17 @@ if '-g' in argv:
 		print("Error creating encrypted file")
 		exit(1)
 	print("Key was successfully saved in ft_otp.key.")
+	exit(0)
+else:
+	try:
+		file = open("ft_otp.key", "rb")
+		salt = file.read(16)
+		encryptedData = file.read()
+		file.close()
+	except Exception:
+		print("Error opening or reading file")
+		exit(1)
+	password = getpass.getpass("Password: ")
+	key = deriveKey(password, salt)
+	fernetObj = Fernet(key)
+	decryptedData = fernetObj.decrypt(encryptedData).decode()
