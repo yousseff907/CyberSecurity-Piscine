@@ -1,4 +1,4 @@
-port 4242
-PermitRootLogin prohibitPassword
+Port 4242
+PermitRootLogin prohibit-password
 PasswordAuthentication no
 PubkeyAuthentication yes
