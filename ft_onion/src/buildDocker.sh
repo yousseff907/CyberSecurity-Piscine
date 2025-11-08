@@ -3,8 +3,6 @@ echo "Building docker image"
 docker build -t ft_onion .
 echo "Running container"
 docker run -d --name ft_onion_container -p 2424:4242 ft_onion
-echo "Wait 30 seconds for initialization"
-sleep 30
 echo "Creating your .onion adress"
 docker exec ft_onion_container cat /var/lib/tor/hidden_service/hostname
 echo "Container status"
