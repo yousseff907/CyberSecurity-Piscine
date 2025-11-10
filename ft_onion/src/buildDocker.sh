@@ -1,5 +1,16 @@
 #!/bin/bash
-echo "Building docker image"
+# **************************************************************************** #
+#                                                                              #
+#                                                         :::      ::::::::    #
+#    buildDocker.sh                                     :+:      :+:    :+:    #
+#                                                     +:+ +:+         +:+      #
+#    By: yitani <yitani@student.42.fr>              +#+  +:+       +#+         #
+#                                                 +#+#+#+#+#+   +#+            #
+#    Created: 2025/11/10 15:39:55 by yitani            #+#    #+#              #
+#    Updated: 2025/11/10 15:40:02 by yitani           ###   ########.fr        #
+#                                                                              #
+# **************************************************************************** #
+
 docker build -t ft_onion .
 echo "Running container"
 docker run -d --name ft_onion_container -p 2424:4242 ft_onion
