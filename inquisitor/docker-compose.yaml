@@ -9,3 +9,21 @@
 #    Updated: 2025/11/13 12:39:41 by yitani           ###   ########.fr        #
 #                                                                              #
 # **************************************************************************** #
+
+version: '3.8'
+
+services:
+
+networks:
+  internal_lan:
+    driver: bridge
+    ipam:
+        config:
+          - subnet: 192.168.1.0/24
+            gateway: 192.168.1.1
+  external_net:
+    driver: bridge
+    ipam:
+      config:
+        - subnet: 10.0.0.0/24
+          gateway: 10.0.0.1
