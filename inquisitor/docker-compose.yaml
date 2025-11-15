@@ -1,29 +1,44 @@
-`# **************************************************************************** #
-#                                                                              #
-#                                                         :::      ::::::::    #
-#    docker-compose.yaml                                :+:      :+:    :+:    #
-#                                                     +:+ +:+         +:+      #
-#    By: yitani <yitani@student.42.fr>              +#+  +:+       +#+         #
-#                                                 +#+#+#+#+#+   +#+            #
-#    Created: 2025/11/13 12:31:30 by yitani            #+#    #+#              #
-#    Updated: 2025/11/13 12:39:41 by yitani           ###   ########.fr        #
-#                                                                              #
-# **************************************************************************** #
-
 version: '3.8'
 
 services:
+  attacker:
+    build: .
+    container_name: attacker
+    cap_add:
+      - NET_ADMIN
+      - NET_RAW
+    networks:
+      lan:
+        ipv4_address: 192.168.1.50
+    stdin_open : true
+    tty: true
+  victim:
+    image: ubuntu:22.04
+    container_name: victim
+    command: bash -c "apt-get update && apt-get install -y ftp && tail -f /dev/null"
+    networks:
+      lan:
+        ipv4_address: 192.168.1.10
+    stdin_open: true
+    tty: true
+  ftp_server:
+      image: fauria/vsftpd
+      container_name: ftp_server
+      environment:
+        - FTP_USER=ftpuser
+        - FTP_PASS=ftppass
+      networks:
+        lan:
+          ipv4_address: 192.168.1.100
+      ports:
+        - "2121:21"
+        - "21000-21010:21000-21010"
+      volumes:
+        - ./ftp_files:/home/vsftpd
 
 networks:
-  internal_lan:
+  lan:
     driver: bridge
     ipam:
         config:
           - subnet: 192.168.1.0/24
-            gateway: 192.168.1.1
-  external_net:
-    driver: bridge
-    ipam:
-      config:
-        - subnet: 10.0.0.0/24
-          gateway: 10.0.0.1
